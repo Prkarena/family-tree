@@ -10,19 +10,23 @@ import {
   Box,
   Button,
 } from "@chakra-ui/react";
+import Loader from "../Loader/Loader";
 
-const Form = ({
-  datum,
-  rel_datum,
-  store,
-  rel_type,
-  card_edit,
-  postSubmit,
-  card_display,
-  onClose,
-}) => {
-  console.log("datum", store.getData());
+const Form = (props) => {
+  const {
+    datum,
+    rel_datum,
+    store,
+    rel_type,
+    card_edit,
+    postSubmit,
+    card_display,
+    onClose,
+  } = props;
+  console.log("data from family tree", store.getData());
+  
   const [formData, setFormData] = useState(datum.data || {}); // Use initial data or empty object
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setFormData(datum.data || {}); // Update form data when props change
@@ -94,30 +98,44 @@ const Form = ({
     );
   };
 
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    // TODO: add api call here to save data to db and after that update state in tree
+    setTimeout(() => {
+      Object.keys(formData).forEach((k) => (datum.data[k] = formData[k]));
+      setIsLoading(false);
+      onClose();
+      postSubmit(formData);
+    }, 3000);
+  };
+
   return (
     <Box p="30px">
+      {isLoading && <Loader />}
+
       <form onSubmit={(e) => e.preventDefault()}>
         <div>
-            <Box
-              display='flex'
-              justifyContent='flex-end'
-              style={{
-                display: `${datum.to_add || !!rel_datum ? "none" : null}`,
-                float: "right",
-                cursor: "pointer",
-              }}
-              // className="red-text delete"
-              onClick={() => {
-                console.log('delete');
-                onClose();
-                postSubmit({ delete: true });
-              }}
-              cursor='pointer'
-              zIndex='2'
-            >
-              delete
-            </Box>
-          <Box display='flex' paddingTop='10px'>
+          <Box
+            display="flex"
+            justifyContent="flex-end"
+            style={{
+              display: `${datum.to_add || !!rel_datum ? "none" : null}`,
+              float: "right",
+              cursor: "pointer",
+            }}
+            className="red-text delete"
+            onClick={() => {
+              console.log("delete");
+              onClose();
+              postSubmit({ delete: true });
+            }}
+            cursor="pointer"
+            zIndex="2"
+          >
+            delete
+          </Box>
+          <Box display="flex" paddingTop="10px">
             <FormControl isRequired my={4}>
               <FormLabel>Gender</FormLabel>
               <RadioGroup
@@ -136,7 +154,6 @@ const Form = ({
               </RadioGroup>
             </FormControl>
           </Box>
-
         </div>
         {getEditFields(card_edit)}
         {(rel_type === "son" || rel_type === "daughter") && otherParentSelect()}
@@ -147,14 +164,7 @@ const Form = ({
             type="button"
             colorScheme="blue"
             variant="solid"
-            onClick={(e) => {
-              e.preventDefault();
-              Object.keys(formData).forEach(
-                (k) => (datum.data[k] = formData[k])
-              );
-              onClose();
-              postSubmit(formData);
-            }}
+            onClick={handleFormSubmit}
           >
             Submit
           </Button>

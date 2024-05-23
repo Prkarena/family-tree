@@ -3,6 +3,7 @@ import f3 from "family-chart"; // npm i family-chart
 import "./FamilyTree.css"; // create file 'family-chart.css' in same directory, copy/paste css from examples/create-tree
 import Form from "../Form/Form";
 import Popup from "../Popup/Popup";
+import Loader from "../Loader/Loader";
 
 const cardEditParams = () => [
   { type: "text", placeholder: "first name", key: "first name" },
@@ -23,7 +24,31 @@ const cardDisplay = () => {
 const FamilyTree = () => {
   const contRef = useRef(null);
   const [formDetails, setFormDetails] = useState("");
+  const [initialData, setInitialData] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
+    // TODO: add api call to get initial records for family tree
+    setTimeout(() => {
+      setInitialData([
+        {
+          id: "0",
+          rels: {},
+          data: {
+            "first name": "Name",
+            "last name": "Surname",
+            birthday: 1970,
+            avatar:
+              "https://static8.depositphotos.com/1009634/988/v/950/depositphotos_9883921-stock-illustration-no-user-profile-picture.jpg",
+            gender: "M",
+          },
+        },
+      ]);
+      setIsLoading(false);
+    }, 2000);
+  }, []);
+  useEffect(() => {
+    if (!initialData) return;
     const cont = document.querySelector("#FamilyChart");
     if (!contRef.current || !cont) return;
 
@@ -40,27 +65,14 @@ const FamilyTree = () => {
     const card_edit = cardEditParams();
     const card_display = cardDisplay();
 
-    const initialData = () => [
-      {
-        id: "0",
-        rels: {},
-        data: {
-          "first name": "Name",
-          "last name": "Surname",
-          birthday: 1970,
-          avatar:
-            "https://static8.depositphotos.com/1009634/988/v/950/depositphotos_9883921-stock-illustration-no-user-profile-picture.jpg",
-          gender: "M",
-        },
-      },
-    ];
     const createF3Store = () => {
       return f3.createStore({
-        data: initialData(),
+        data: initialData,
         node_separation: 250,
         level_separation: 150,
       });
     };
+    const f3Store = createF3Store();
 
     const createView = (f3Store) => {
       return f3.d3AnimationView({
@@ -69,13 +81,12 @@ const FamilyTree = () => {
         card_edit,
       });
     };
-
     const cardEditForm = (props) => {
       const card_edit = cardEditParams();
       const card_display = cardDisplay();
 
       const postSubmit = props.postSubmit;
-      
+
       props.postSubmit = (ps_props) => {
         postSubmit(ps_props);
       };
@@ -102,17 +113,17 @@ const FamilyTree = () => {
       });
     };
 
-    const f3Store = createF3Store();
     const view = createView(f3Store);
     const card = createCard(f3Store, view);
 
     view.setCard(card);
     f3Store.setOnUpdate((props) => view.update(props || {}));
     f3Store.update.tree({ initial: true });
-  }, []);
+  }, [initialData]);
 
   return (
     <div>
+      {isLoading && <Loader />}
       <Popup
         isModalOpen={!!formDetails}
         handleCloseModal={() => setFormDetails("")}

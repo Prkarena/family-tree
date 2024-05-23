@@ -19,9 +19,9 @@ const Form = ({
   card_edit,
   postSubmit,
   card_display,
-  onClose
+  onClose,
 }) => {
-  console.log('datum', store.getData());
+  console.log("datum", store.getData());
   const [formData, setFormData] = useState(datum.data || {}); // Use initial data or empty object
 
   useEffect(() => {
@@ -95,26 +95,29 @@ const Form = ({
   };
 
   return (
-    <Box>
+    <Box p="30px">
       <form onSubmit={(e) => e.preventDefault()}>
         <div>
-          <Box textAlign='left'>
-            <span
+            <Box
+              display='flex'
+              justifyContent='flex-end'
               style={{
                 display: `${datum.to_add || !!rel_datum ? "none" : null}`,
                 float: "right",
                 cursor: "pointer",
               }}
-              className="red-text delete"
-              onClick={ () => {
+              // className="red-text delete"
+              onClick={() => {
+                console.log('delete');
                 onClose();
                 postSubmit({ delete: true });
               }}
+              cursor='pointer'
+              zIndex='2'
             >
               delete
-            </span>
-          </Box>
-          <div>
+            </Box>
+          <Box display='flex' paddingTop='10px'>
             <FormControl isRequired my={4}>
               <FormLabel>Gender</FormLabel>
               <RadioGroup
@@ -132,20 +135,26 @@ const Form = ({
                 </Radio>
               </RadioGroup>
             </FormControl>
-          </div>
+          </Box>
+
         </div>
         {getEditFields(card_edit)}
         {(rel_type === "son" || rel_type === "daughter") && otherParentSelect()}
         <br />
         <br />
-        <Box textAlign='center'>
-          <Button type="button" colorScheme="blue" variant="solid" 
-          onClick={(e) => {
-            e.preventDefault();
-
-            onClose();
-            postSubmit(); 
-          }}
+        <Box textAlign="center">
+          <Button
+            type="button"
+            colorScheme="blue"
+            variant="solid"
+            onClick={(e) => {
+              e.preventDefault();
+              Object.keys(formData).forEach(
+                (k) => (datum.data[k] = formData[k])
+              );
+              onClose();
+              postSubmit(formData);
+            }}
           >
             Submit
           </Button>

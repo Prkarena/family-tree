@@ -11,6 +11,10 @@ import {
   Button,
 } from "@chakra-ui/react";
 import Loader from "../Loader/Loader";
+import {
+  deleteFamilyMember,
+  saveFamilyMember,
+} from "../../Services/apis/family";
 
 const Form = (props) => {
   const {
@@ -23,8 +27,7 @@ const Form = (props) => {
     card_display,
     onClose,
   } = props;
-  console.log("data from family tree", store.getData());
-  
+
   const [formData, setFormData] = useState(datum.data || {}); // Use initial data or empty object
   const [isLoading, setIsLoading] = useState(false);
 
@@ -98,16 +101,60 @@ const Form = (props) => {
     );
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    // TODO: add api call here to save data to db and after that update state in tree
-    setTimeout(() => {
-      Object.keys(formData).forEach((k) => (datum.data[k] = formData[k]));
+    try {
+      // TODO: add api call here to save data to db and after that update state in tree
+      const requestData = {
+        id: formData?.id || "",
+        data: formData,
+        main: datum.main,
+        rels: datum.rels,
+      };
+      console.log("formData", requestData);
+      const result = await saveFamilyMember(requestData);
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      setTimeout(() => {
+        Object.keys(formData).forEach((k) => (datum.data[k] = formData[k]));
+        setIsLoading(false);
+        onClose();
+        // postSubmit(formData);
+        postSubmit();
+      }, 3000);
+    } catch (error) {
+      console.log("error", error);
       setIsLoading(false);
+    }
+  };
+
+  const handleDeleteMember = async () => {
+    if (formData.id) {
+      try {
+        setIsLoading(true);
+        // TODO: add api call here to save data to db and after that update state in tree
+        const result = await deleteFamilyMember(formData.id);
+
+        if (result.error) {
+          throw result.error;
+        }
+
+        setTimeout(() => {
+          onClose();
+          postSubmit({ delete: true });
+        }, 3000);
+      } catch (error) {
+        console.log("error", error);
+        setIsLoading(false);
+      }
+    } else {
       onClose();
-      postSubmit(formData);
-    }, 3000);
+      postSubmit({ delete: true });
+    }
   };
 
   return (
@@ -125,11 +172,8 @@ const Form = (props) => {
               cursor: "pointer",
             }}
             className="red-text delete"
-            onClick={() => {
-              console.log("delete");
-              onClose();
-              postSubmit({ delete: true });
-            }}
+            color="red"
+            onClick={handleDeleteMember}
             cursor="pointer"
             zIndex="2"
           >

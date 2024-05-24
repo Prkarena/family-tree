@@ -4,6 +4,7 @@ import "./FamilyTree.css"; // create file 'family-chart.css' in same directory, 
 import Form from "../Form/Form";
 import Popup from "../Popup/Popup";
 import Loader from "../Loader/Loader";
+import { getFamilyMembers } from "../../Services/apis/family";
 
 const cardEditParams = () => [
   { type: "text", placeholder: "first name", key: "first name" },
@@ -27,26 +28,37 @@ const FamilyTree = () => {
   const [initialData, setInitialData] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // TODO: add api call to get initial records for family tree
-    setTimeout(() => {
-      setInitialData([
-        {
-          id: "0",
-          rels: {},
-          data: {
-            "first name": "Name",
-            "last name": "Surname",
-            birthday: 1970,
-            avatar:
-              "https://static8.depositphotos.com/1009634/988/v/950/depositphotos_9883921-stock-illustration-no-user-profile-picture.jpg",
-            gender: "M",
+  const fetchMembers = async (params) => {
+    try {
+      const result = await getFamilyMembers(params);
+      // TODO: add api call to get initial records for family tree
+      setTimeout(() => {
+        setInitialData([
+          {
+            id: "0",
+            rels: {},
+            data: {
+              "first name": "Name",
+              "last name": "Surname",
+              birthday: 1970,
+              avatar:
+                "https://static8.depositphotos.com/1009634/988/v/950/depositphotos_9883921-stock-illustration-no-user-profile-picture.jpg",
+              gender: "M",
+            },
           },
-        },
-      ]);
-      setIsLoading(false);
-    }, 2000);
+        ]);
+        setIsLoading(false);
+      }, 2000);
+    } catch (error) {
+      console.log("error", error);
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    fetchMembers();
   }, []);
+
   useEffect(() => {
     if (!initialData) return;
     const cont = document.querySelector("#FamilyChart");
